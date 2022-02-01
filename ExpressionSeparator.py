@@ -1,8 +1,6 @@
-from distutils.util import subst_vars
-from typing import Dict, List
+from typing import  List
 
 import numpy as np
-
 
 
 class Expression:
@@ -22,8 +20,6 @@ class Expression:
     def __str__ (self):
         return f"Expression: {self.operation_txt}, priority = {self.priority}"
 
-
-
 class ExpressionSeparator:
 
     exp_list = []
@@ -42,14 +38,17 @@ class ExpressionSeparator:
 
     
     def convert_string_to_exprs(self, string:str) -> List[Expression]:
-        self.exp_full_str = list(string)
-        self.exp_full_str = self.fix_separated_numbers(self.exp_full_str)
-        self.exp_full_str = self.fix_subtraction_operations(self.exp_full_str)
-        clean_list = self.extract_parenthesis(self.exp_full_str)
-        self.rise_all_priorities()
-        self.define_exp_for_prepared_data(clean_list)
-        return self.exp_list
-        # self.fix_complex_elements_in_exp_list()
+        try:
+            self.check_input_string(string)
+            self.exp_full_str = list(string)
+            self.exp_full_str = self.fix_separated_numbers(self.exp_full_str)
+            self.exp_full_str = self.fix_subtraction_operations(self.exp_full_str)
+            clean_list = self.extract_parenthesis(self.exp_full_str)
+            self.rise_all_priorities()
+            self.define_exp_for_prepared_data(clean_list)
+            return self.exp_list
+        except:
+            return -1
 
 
     def define_exp_for_prepared_data(self, arr):
@@ -73,18 +72,7 @@ class ExpressionSeparator:
                 operations_not_defined = 0
             elif(all(np.isin(arr, 'exp'))):
                 operations_not_defined = 0
-
-        
-     
-    # def fix_complex_elements_in_exp_list(self):
-    #     for elem in self.exp_list:
-    #         _counter = 0
-    #         for operator in self.supported:
-    #             unique, _counter = np.unique(elem.operation_txt, return_counts=True)
-    #             print(_counter)
-
-
-
+    
     def define_exp_operation_for_math_eq(self, equation):
 
         equation =  np.array(equation, dtype=object)
@@ -100,8 +88,7 @@ class ExpressionSeparator:
                     equation = equation[equation.nonzero()]
                     self.rise_all_priorities()
                     return equation.tolist() # [*equation] #.tolist()
-          
- 
+         
     def rise_all_priorities(self):
         for e in self.exp_list: e.rise_priority()
 
@@ -142,7 +129,6 @@ class ExpressionSeparator:
             else:
                 out.append(charr)
         return out
-
 
     def extract_parenthesis(self, string:str):
         
@@ -194,4 +180,21 @@ class ExpressionSeparator:
   
         return arr_no_parenth
 
+    def check_input_string(self, input):
+        if len(input) == 0: raise StringIsEmptyError
+        if input.count('(') != input.count(')'): raise ParenthesisError
+        supported = list('*/+-()1234567890')
 
+        if any((c not in supported) for c in input):
+            raise UnsupportedCharError
+
+
+
+class StringIsEmptyError(Exception):
+    pass
+
+class UnsupportedCharError(Exception):
+    pass
+
+class ParenthesisError(Exception):
+    pass
